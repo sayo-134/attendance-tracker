@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>📍 Attendance Tracker</h1>
+        
+        <div class="status-card">
+            <div id="status" class="status">Not Tapped In</div>
+            <div id="current-session" class="current-session"></div>
+        </div>
+
+        <div class="action-buttons">
+            <button id="tap-in-btn" class="btn btn-primary">Tap In</button>
+            <button id="tap-out-btn" class="btn btn-secondary" disabled>Tap Out</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Today's Hours</div>
+                <div id="today-hours" class="stat-value">0.00</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">This Month</div>
+                <div id="month-hours" class="stat-value">0.00</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Remaining</div>
+                <div id="remaining-hours" class="stat-value">200.00</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Progress</div>
+                <div id="progress-percent" class="stat-value">0%</div>
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div id="progress-fill" class="progress-fill"></div>
+        </div>
+
+        <div class="history-section">
+            <div class="history-header">
+                <h2>Recent Sessions</h2>
+                <button id="export-btn" class="btn btn-small">Export Data</button>
+            </div>
+            <div id="history-list" class="history-list"></div>
+        </div>
+
+        <div class="danger-zone">
+            <button id="clear-data-btn" class="btn btn-danger">Clear All Data</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
