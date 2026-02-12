@@ -137,9 +137,12 @@ function updateUI() {
     const progress = Math.min(100, (monthHours / MONTHLY_TARGET) * 100);
     
     // Update stats
-    todayHoursEl.textContent = todayHours.toFixed(2);
-    monthHoursEl.textContent = monthHours.toFixed(2);
-    remainingHoursEl.textContent = remaining.toFixed(2);
+    // todayHoursEl.textContent = todayHours.toFixed(2);
+    // monthHoursEl.textContent = monthHours.toFixed(2);
+    // remainingHoursEl.textContent = remaining.toFixed(2);
+    todayHoursEl.textContent = formatHours(todayHours);
+    monthHoursEl.textContent = formatHours(monthHours);
+    remainingHoursEl.textContent = formatHours(remaining);
     progressPercentEl.textContent = `${progress.toFixed(0)}%`;
     progressFillEl.style.width = `${progress}%`;
     
