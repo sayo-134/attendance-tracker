@@ -11,33 +11,33 @@
 
 <div class="container">
 
-<h1>📍 Attendance Tracker</h1>
+<h1>Attendance Tracker</h1>
 
 <div class="status-card">
-  <div id="status" class="status">Not Tapped In</div>
-  <div id="current-session" class="current-session"></div>
+<div id="status" class="status">Not Tapped In</div>
+<div id="current-session" class="current-session"></div>
 </div>
 
 <div class="action-buttons">
-  <button id="tap-in-btn" class="btn btn-primary">Tap In</button>
-  <button id="tap-out-btn" class="btn btn-secondary" disabled>Tap Out</button>
+<button id="tap-in-btn" class="btn btn-primary">Tap In</button>
+<button id="tap-out-btn" class="btn btn-secondary" disabled>Tap Out</button>
 </div>
 
-<!-- NEW BUTTON -->
 <div class="manual-button-row">
-    <button id="manual-entry-btn" class="btn btn-manual">Add Manual Entry</button>
+<button id="manual-entry-btn" class="btn btn-manual">Manual Entry</button>
 </div>
+
 
 <div class="stats-grid">
 
 <div class="stat-card">
-  <div class="stat-label">Today's Hours</div>
-  <div id="today-hours" class="stat-value">0.00</div>
+<div class="stat-label">Today's Hours</div>
+<div id="today-hours" class="stat-value">0.00</div>
 </div>
 
 <div class="stat-card">
-  <div class="stat-label">This Month</div>
-  <div id="month-hours" class="stat-value">0.00</div>
+<div class="stat-label">This Month</div>
+<div id="month-hours" class="stat-value">0.00</div>
 </div>
 
 <div class="stat-card">
@@ -56,13 +56,31 @@
 <div id="progress-fill" class="progress-fill"></div>
 </div>
 
+
+
 <div class="history-section">
-<div class="history-header">
-<h2>Recent Sessions</h2>
-<button id="export-btn" class="btn btn-small">Export Data</button>
+
+<div class="view-buttons">
+
+<button id="view-sessions-btn" class="btn btn-view active-view">
+Recent Sessions
+</button>
+
+<button id="view-daily-btn" class="btn btn-view">
+Daily Totals
+</button>
+
 </div>
+
+<div class="export-row">
+<button id="export-btn" class="btn btn-export">Export Data</button>
+</div>
+
 <div id="history-list" class="history-list"></div>
+
 </div>
+
+
 
 <div class="danger-zone">
 <button id="clear-data-btn" class="btn btn-danger">Clear All Data</button>
@@ -70,7 +88,9 @@
 
 </div>
 
-<!-- MANUAL ENTRY POPUP -->
+
+
+<!-- Manual entry popup -->
 
 <div id="manual-entry-card" class="manual-card hidden">
 
@@ -95,6 +115,7 @@
 </div>
 
 </div>
+
 
 <script src="script.js"></script>
 
