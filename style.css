@@ -14,10 +14,11 @@ body {
 .container {
     max-width: 800px;
     margin: 0 auto;
-    background: white;
+    background: rgba(255,255,255,0.96);
     border-radius: 20px;
     padding: 30px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    backdrop-filter: blur(6px);
 }
 
 h1 {
@@ -144,7 +145,7 @@ h2 {
 .progress-fill {
     height: 100%;
     background: linear-gradient(90deg, #10b981 0%, #059669 100%);
-    transition: width 0.3s ease;
+    transition: width 0.5s ease;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -300,18 +301,49 @@ gap:15px;
 margin-bottom:15px;
 }
 
+/* .btn-view{ */
+/* background:#e5e7eb; */
+/* color:#111827; */
+/* } */
+
+/* .btn-view:hover{ */
+/* background:#d1d5db; */
+/* } */
+
+/* .active-view{ */
+/* background:#4f46e5; */
+/* color:white; */
+/* } */
+
 .btn-view{
 background:#e5e7eb;
 color:#111827;
+transition: all 0.25s ease;
 }
 
 .btn-view:hover{
 background:#d1d5db;
+transform: translateY(-2px);
 }
+
+/* active mode button */
 
 .active-view{
 background:#4f46e5;
 color:white;
+}
+
+/* prevent gray focus state */
+
+.btn-view:focus{
+outline:none;
+box-shadow:none;
+}
+
+/* click animation like other buttons */
+
+.btn-view:active{
+transform: translateY(1px);
 }
 
 
