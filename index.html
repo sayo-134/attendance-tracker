@@ -1,61 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Attendance Tracker</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attendance Tracker</title>
+<link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-    <div class="container">
-        <h1>📍 Attendance Tracker</h1>
-        
-        <div class="status-card">
-            <div id="status" class="status">Not Tapped In</div>
-            <div id="current-session" class="current-session"></div>
-        </div>
 
-        <div class="action-buttons">
-            <button id="tap-in-btn" class="btn btn-primary">Tap In</button>
-            <button id="tap-out-btn" class="btn btn-secondary" disabled>Tap Out</button>
-        </div>
+<div class="container">
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">Today's Hours</div>
-                <div id="today-hours" class="stat-value">0.00</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">This Month</div>
-                <div id="month-hours" class="stat-value">0.00</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Remaining</div>
-                <div id="remaining-hours" class="stat-value">200.00</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Progress</div>
-                <div id="progress-percent" class="stat-value">0%</div>
-            </div>
-        </div>
+<h1>📍 Attendance Tracker</h1>
 
-        <div class="progress-bar">
-            <div id="progress-fill" class="progress-fill"></div>
-        </div>
+<div class="status-card">
+  <div id="status" class="status">Not Tapped In</div>
+  <div id="current-session" class="current-session"></div>
+</div>
 
-        <div class="history-section">
-            <div class="history-header">
-                <h2>Recent Sessions</h2>
-                <button id="export-btn" class="btn btn-small">Export Data</button>
-            </div>
-            <div id="history-list" class="history-list"></div>
-        </div>
+<div class="action-buttons">
+  <button id="tap-in-btn" class="btn btn-primary">Tap In</button>
+  <button id="tap-out-btn" class="btn btn-secondary" disabled>Tap Out</button>
+</div>
 
-        <div class="danger-zone">
-            <button id="clear-data-btn" class="btn btn-danger">Clear All Data</button>
-        </div>
-    </div>
+<!-- NEW BUTTON -->
+<div class="manual-button-row">
+    <button id="manual-entry-btn" class="btn btn-manual">Add Manual Entry</button>
+</div>
 
-    <script src="script.js"></script>
+<div class="stats-grid">
+
+<div class="stat-card">
+  <div class="stat-label">Today's Hours</div>
+  <div id="today-hours" class="stat-value">0.00</div>
+</div>
+
+<div class="stat-card">
+  <div class="stat-label">This Month</div>
+  <div id="month-hours" class="stat-value">0.00</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-label">Remaining</div>
+<div id="remaining-hours" class="stat-value">200.00</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-label">Progress</div>
+<div id="progress-percent" class="stat-value">0%</div>
+</div>
+
+</div>
+
+<div class="progress-bar">
+<div id="progress-fill" class="progress-fill"></div>
+</div>
+
+<div class="history-section">
+<div class="history-header">
+<h2>Recent Sessions</h2>
+<button id="export-btn" class="btn btn-small">Export Data</button>
+</div>
+<div id="history-list" class="history-list"></div>
+</div>
+
+<div class="danger-zone">
+<button id="clear-data-btn" class="btn btn-danger">Clear All Data</button>
+</div>
+
+</div>
+
+<!-- MANUAL ENTRY POPUP -->
+
+<div id="manual-entry-card" class="manual-card hidden">
+
+<div class="manual-content">
+
+<h2>Add Manual Session</h2>
+
+<label>Date</label>
+<input type="date" id="manual-date">
+
+<label>Start Time</label>
+<input type="time" id="manual-start">
+
+<label>End Time</label>
+<input type="time" id="manual-end">
+
+<div class="manual-buttons">
+<button id="manual-save" class="btn btn-primary btn-small">Save</button>
+<button id="manual-cancel" class="btn btn-secondary btn-small">Cancel</button>
+</div>
+
+</div>
+
+</div>
+
+<script src="script.js"></script>
+
 </body>
 </html>
