@@ -60,17 +60,28 @@
 
 <div class="history-section">
 
+<!-- ?? NEW VIEW BUTTONS -->
+
 <div class="view-buttons">
 
-<button id="view-sessions-btn" class="btn btn-view active-view">
-Recent Sessions
+<button id="daily-inside-btn" class="btn btn-view active-view">
+Daily (Inside)
 </button>
 
-<button id="view-daily-btn" class="btn btn-view">
-Weekly Totals
+<button id="daily-outside-btn" class="btn btn-view">
+Daily (Outside)
+</button>
+
+<button id="weekly-inside-btn" class="btn btn-view">
+Weekly (Inside)
+</button>
+
+<button id="weekly-outside-btn" class="btn btn-view">
+Weekly (Outside)
 </button>
 
 </div>
+
 
 <div class="export-row">
 <button id="export-btn" class="btn btn-export">Export Data</button>
@@ -97,6 +108,13 @@ Weekly Totals
 <div class="manual-content">
 
 <h2>Add Manual Session</h2>
+
+<!-- ?? NEW TYPE SELECTOR -->
+<label>Type</label>
+<select id="manual-type">
+<option value="inside">Inside Department</option>
+<option value="outside">Outside Department</option>
+</select>
 
 <label>Date</label>
 <input type="date" id="manual-date">

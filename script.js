@@ -4,7 +4,7 @@ const MONTHLY_TARGET = 200;
 let currentSession = null;
 let sessions = [];
 
-let viewMode = "sessions";
+let viewMode = "daily_inside";
 
 
 // DOM
@@ -12,8 +12,10 @@ let viewMode = "sessions";
 const tapInBtn = document.getElementById('tap-in-btn');
 const tapOutBtn = document.getElementById('tap-out-btn');
 
-const viewSessionsBtn = document.getElementById('view-sessions-btn');
-const viewDailyBtn = document.getElementById('view-daily-btn');
+const weeklyInsideBtn = document.getElementById('weekly-inside-btn');
+const weeklyOutsideBtn = document.getElementById('weekly-outside-btn');
+const dailyInsideBtn = document.getElementById('daily-inside-btn');
+const dailyOutsideBtn = document.getElementById('daily-outside-btn');
 
 const statusEl = document.getElementById('status');
 const currentSessionEl = document.getElementById('current-session');
@@ -44,15 +46,25 @@ const manualCancel = document.getElementById('manual-cancel');
 const manualDate = document.getElementById('manual-date');
 const manualStart = document.getElementById('manual-start');
 const manualEnd = document.getElementById('manual-end');
+const manualType = document.getElementById('manual-type');
 
 
 // load data
 
 function loadData(){
+
 const savedSessions = localStorage.getItem('attendanceSessions');
 const savedCurrentSession = localStorage.getItem('currentSession');
 
-if(savedSessions) sessions = JSON.parse(savedSessions);
+if(savedSessions){
+    sessions = JSON.parse(savedSessions);
+
+    sessions = sessions.map(s => ({
+        ...s,
+        type: s.type || "inside"
+    }));
+}
+
 if(savedCurrentSession) currentSession = JSON.parse(savedCurrentSession);
 }
 
@@ -60,14 +72,12 @@ if(savedCurrentSession) currentSession = JSON.parse(savedCurrentSession);
 // save data
 
 function saveData(){
-
 localStorage.setItem('attendanceSessions',JSON.stringify(sessions));
 
 if(currentSession)
 localStorage.setItem('currentSession',JSON.stringify(currentSession));
 else
 localStorage.removeItem('currentSession');
-
 }
 
 
@@ -95,90 +105,36 @@ year:'numeric'
 });
 }
 
-function formatTime(date){
-return new Date(date).toLocaleTimeString('en-US',{
-hour:'2-digit',
-minute:'2-digit'
-});
-}
 
-
-// filters
-
-function getTodaySessions(){
-const today=new Date().toDateString();
-
-return sessions.filter(s =>
-new Date(s.tapIn).toDateString()===today
-);
-}
-
-function getMonthSessions(){
-const now=new Date();
-
-return sessions.filter(s=>{
-const d=new Date(s.tapIn);
-
-return d.getMonth()===now.getMonth() &&
-d.getFullYear()===now.getFullYear();
-});
-}
-
-function calculateTotalHours(list){
-return list.reduce((total,s)=>
-total+calculateDuration(s.tapIn,s.tapOut),0);
-}
-
-
-// update UI
+// UI update
 
 function updateUI(){
 
 if(currentSession){
-
 statusEl.textContent='✅ Tapped In';
 statusCard.classList.add('tapped-in');
 
-const duration=
-calculateDuration(currentSession.tapIn,new Date());
-
-currentSessionEl.textContent=
-`Since ${formatHours(duration)}`;
+const duration=calculateDuration(currentSession.tapIn,new Date());
+currentSessionEl.textContent=`Since ${formatHours(duration)}`;
 
 tapInBtn.disabled=true;
 tapOutBtn.disabled=false;
 
-}
-else{
-
+}else{
 statusEl.textContent='⭕ Not Tapped In';
 statusCard.classList.remove('tapped-in');
 
 currentSessionEl.textContent='';
-
 tapInBtn.disabled=false;
 tapOutBtn.disabled=true;
-
 }
 
-
-let todayHours=calculateTotalHours(getTodaySessions());
-let monthHours=calculateTotalHours(getMonthSessions());
-
-if(currentSession){
-
-const currentDuration=
-calculateDuration(currentSession.tapIn,new Date());
-
-todayHours+=currentDuration;
-monthHours+=currentDuration;
-
-}
+let monthHours = sessions.reduce((t,s)=>t+calculateDuration(s.tapIn,s.tapOut),0);
 
 const remaining=Math.max(0,MONTHLY_TARGET-monthHours);
 const progress=Math.min(100,(monthHours/MONTHLY_TARGET)*100);
 
-todayHoursEl.textContent=formatHours(todayHours);
+todayHoursEl.textContent="--";
 monthHoursEl.textContent=formatHours(monthHours);
 remainingHoursEl.textContent=formatHours(remaining);
 
@@ -186,7 +142,24 @@ progressPercentEl.textContent=`${progress.toFixed(0)}%`;
 progressFillEl.style.width=`${progress}%`;
 
 renderHistory();
+}
 
+
+// VIEW SWITCH
+
+function setView(mode){
+
+viewMode = mode;
+
+document.querySelectorAll('.btn-view')
+.forEach(btn => btn.classList.remove('active-view'));
+
+if(mode==="weekly_inside") weeklyInsideBtn.classList.add('active-view');
+if(mode==="weekly_outside") weeklyOutsideBtn.classList.add('active-view');
+if(mode==="daily_inside") dailyInsideBtn.classList.add('active-view');
+if(mode==="daily_outside") dailyOutsideBtn.classList.add('active-view');
+
+renderHistory();
 }
 
 
@@ -195,96 +168,76 @@ renderHistory();
 function renderHistory(){
 
 if(sessions.length===0){
-
-historyListEl.innerHTML=
-'<p style="text-align:center;color:#9ca3af;padding:20px;">No sessions yet</p>';
-
+historyListEl.innerHTML='<p style="text-align:center;">No sessions</p>';
 return;
 }
 
+const type = viewMode.includes("outside") ? "outside" : "inside";
+const filtered = sessions.filter(s => (s.type||"inside")===type);
 
-// sessions view
 
-if(viewMode==="sessions"){
+// DAILY
+if(viewMode.includes("daily")){
 
-const sorted=[...sessions].sort((a,b)=>
-new Date(b.tapIn)-new Date(a.tapIn)
-);
+const daily={};
 
-historyListEl.innerHTML=sorted.slice(0,20).map(s=>{
+filtered.forEach(s=>{
+const key=new Date(s.tapIn).toDateString();
+const d=calculateDuration(s.tapIn,s.tapOut);
 
-const duration=calculateDuration(s.tapIn,s.tapOut);
+if(!daily[key]) daily[key]=0;
+daily[key]+=d;
+});
 
-return`
+const sorted=Object.entries(daily)
+.sort((a,b)=>new Date(b[0])-new Date(a[0]));
 
-<div class="history-item">
-
-<div>
-<div class="history-date">${formatDate(s.tapIn)}</div>
-<div class="history-time">
-${formatTime(s.tapIn)} - ${formatTime(s.tapOut)}
+historyListEl.innerHTML=sorted.map(([d,total])=>`
+<div class="history-item ${type}">
+<div class="history-date">${d}</div>
+<div class="history-duration">${formatHours(total)}</div>
 </div>
-</div>
+`).join('');
 
-<div class="history-duration">${formatHours(duration)}</div>
-
-</div>
-
-`;
-
-}).join('');
 }
 
 
-// weekly totals view
-
+// WEEKLY
 else{
 
-const weeklyTotals = {};
+const weekly={};
 
-sessions.forEach(s => {
+filtered.forEach(s=>{
+const d=new Date(s.tapIn);
 
-const d = new Date(s.tapIn);
+const start=new Date(d);
+start.setDate(d.getDate()-d.getDay());
+start.setHours(0,0,0,0);
 
-const startOfWeek = new Date(d);
-startOfWeek.setDate(d.getDate() - d.getDay());
-startOfWeek.setHours(0,0,0,0);
+const key=start.toISOString();
 
-const key = startOfWeek.toISOString();
+const dur=calculateDuration(s.tapIn,s.tapOut);
 
-const duration = calculateDuration(s.tapIn, s.tapOut);
-
-if(!weeklyTotals[key]) weeklyTotals[key] = 0;
-
-weeklyTotals[key] += duration;
-
+if(!weekly[key]) weekly[key]=0;
+weekly[key]+=dur;
 });
 
-const sortedWeeks = Object.entries(weeklyTotals)
-.sort((a,b)=> new Date(b[0]) - new Date(a[0]));
+const sorted=Object.entries(weekly)
+.sort((a,b)=>new Date(b[0])-new Date(a[0]));
 
-historyListEl.innerHTML = sortedWeeks.map(([weekStart,total]) => {
-
-const start = new Date(weekStart);
-const end = new Date(start);
-end.setDate(start.getDate() + 6);
+historyListEl.innerHTML=sorted.map(([k,total])=>{
+const start=new Date(k);
+const end=new Date(start);
+end.setDate(start.getDate()+6);
 
 return `
-
-<div class="history-item">
-
+<div class="history-item ${type}">
 <div class="history-date">
 ${formatDate(start)} - ${formatDate(end)}
 </div>
-
-<div class="history-duration">
-${formatHours(total)}
+<div class="history-duration">${formatHours(total)}</div>
 </div>
-
-</div>
-
 `;
-
 }).join('');
 
 }
@@ -292,66 +245,35 @@ ${formatHours(total)}
 }
 
 
-// tap in/out
+// tap
 
 function tapIn(){
-currentSession={tapIn:new Date().toISOString()};
-saveData();
-updateUI();
+currentSession={tapIn:new Date().toISOString(),type:"inside"};
+saveData(); updateUI();
 }
 
 function tapOut(){
-
 if(!currentSession) return;
 
 sessions.push({
 tapIn:currentSession.tapIn,
-tapOut:new Date().toISOString()
+tapOut:new Date().toISOString(),
+type:currentSession.type||"inside"
 });
 
 currentSession=null;
-
-saveData();
-updateUI();
-
+saveData(); updateUI();
 }
 
 
-// view buttons
-
-viewSessionsBtn.addEventListener('click',()=>{
-
-viewMode="sessions";
-
-viewSessionsBtn.classList.add('active-view');
-viewDailyBtn.classList.remove('active-view');
-
-renderHistory();
-
-});
-
-viewDailyBtn.addEventListener('click',()=>{
-
-viewMode="weekly";
-
-viewDailyBtn.classList.add('active-view');
-viewSessionsBtn.classList.remove('active-view');
-
-renderHistory();
-
-});
-
-
-// manual entry
+// manual
 
 manualBtn.addEventListener('click',()=>{
-
 manualCard.classList.remove('hidden');
 
 manualDate.value=new Date().toISOString().split("T")[0];
 manualStart.value="";
 manualEnd.value="";
-
 });
 
 manualCancel.addEventListener('click',()=>{
@@ -360,92 +282,63 @@ manualCard.classList.add('hidden');
 
 manualSave.addEventListener('click',()=>{
 
-const date=manualDate.value;
-const start=manualStart.value;
-const end=manualEnd.value;
-
-if(!date || !start || !end){
-alert("Please fill all fields");
-return;
-}
-
-const tapIn=new Date(`${date}T${start}`);
-const tapOut=new Date(`${date}T${end}`);
-
-if(tapOut<=tapIn){
-alert("End must be after start");
-return;
-}
+const tapIn=new Date(`${manualDate.value}T${manualStart.value}`);
+const tapOut=new Date(`${manualDate.value}T${manualEnd.value}`);
 
 sessions.push({
 tapIn:tapIn.toISOString(),
-tapOut:tapOut.toISOString()
+tapOut:tapOut.toISOString(),
+type:manualType.value
 });
 
 saveData();
 updateUI();
 
 manualCard.classList.add('hidden');
-
 });
 
 
-// CSV export
+// export
 
 function exportData(){
 
-if(sessions.length === 0){
+if(sessions.length===0){
 alert("No data to export");
 return;
 }
 
-let csv = "Date,Start Time,End Time,Duration (hours)\n";
+let csv="Date,Start,End,Duration,Type\n";
 
-sessions.forEach(s => {
-
-const start = new Date(s.tapIn);
-const end = new Date(s.tapOut);
-
-const date = start.toISOString().split("T")[0];
-const startTime = formatTime(start);
-const endTime = formatTime(end);
-
-const duration = calculateDuration(s.tapIn, s.tapOut).toFixed(2);
-
-csv += `${date},${startTime},${endTime},${duration}\n`;
-
+sessions.forEach(s=>{
+csv+=`${s.tapIn.split("T")[0]},${s.tapIn},${s.tapOut},${calculateDuration(s.tapIn,s.tapOut).toFixed(2)},${s.type}\n`;
 });
 
-const blob = new Blob([csv], { type: "text/csv" });
+const blob=new Blob([csv],{type:"text/csv"});
+const url=URL.createObjectURL(blob);
 
-const url = URL.createObjectURL(blob);
-
-const a = document.createElement("a");
-a.href = url;
-a.download = `attendance-${new Date().toISOString().split("T")[0]}.csv`;
-
+const a=document.createElement("a");
+a.href=url;
+a.download="attendance.csv";
 a.click();
 
 URL.revokeObjectURL(url);
-
 }
 
 
-// clear
+// CLEAR DATA (FIXED)
 
 function clearData(){
 
-if(confirm('Are you sure?')){
+if(confirm("Are you sure you want to delete all data?")){
 
-sessions=[];
-currentSession=null;
+sessions = [];
+currentSession = null;
 
-localStorage.clear();
+localStorage.removeItem('attendanceSessions');
+localStorage.removeItem('currentSession');
 
 updateUI();
-
 }
-
 }
 
 
@@ -454,14 +347,16 @@ updateUI();
 tapInBtn.addEventListener('click',tapIn);
 tapOutBtn.addEventListener('click',tapOut);
 
-clearDataBtn.addEventListener('click',clearData);
+weeklyInsideBtn.addEventListener('click',()=>setView("weekly_inside"));
+weeklyOutsideBtn.addEventListener('click',()=>setView("weekly_outside"));
+dailyInsideBtn.addEventListener('click',()=>setView("daily_inside"));
+dailyOutsideBtn.addEventListener('click',()=>setView("daily_outside"));
+
 exportBtn.addEventListener('click',exportData);
+clearDataBtn.addEventListener('click',clearData);
 
 
-setInterval(()=>{
-if(currentSession) updateUI();
-},1000);
-
+// init
 
 loadData();
 updateUI();
