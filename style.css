@@ -68,7 +68,7 @@ h2 {
 }
 
 .btn {
-    flex: 1;
+    flex: unset;
     padding: 18px;
     border: none;
     border-radius: 10px;
@@ -282,4 +282,22 @@ h2 {
 .history-item:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+
+/* MOBILE FIX FOR VIEW BUTTONS */
+
+@media (max-width: 600px){
+
+    .view-buttons{
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .btn-view{
+        width: 100%;
+        font-size: 0.85em;
+        padding: 10px;
+        text-align: center;
+        white-space: normal; /* allow wrapping */
+    }
+
 }
