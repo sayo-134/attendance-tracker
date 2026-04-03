@@ -4,7 +4,7 @@ const MONTHLY_TARGET = 200;
 let currentSession = null;
 let sessions = [];
 
-let viewMode = "daily_inside";
+let viewMode = "sessions"; // NEW default
 
 
 // DOM
@@ -35,6 +35,15 @@ const exportBtn = document.getElementById('export-btn');
 const statusCard = document.querySelector('.status-card');
 
 
+// delete modal
+
+const deleteModal = document.getElementById('delete-modal');
+const deleteConfirm = document.getElementById('delete-confirm');
+const deleteCancel = document.getElementById('delete-cancel');
+
+let deleteIndex = null;
+
+
 // manual entry
 
 const manualBtn = document.getElementById('manual-entry-btn');
@@ -49,7 +58,7 @@ const manualEnd = document.getElementById('manual-end');
 const manualType = document.getElementById('manual-type');
 
 
-// load data
+// load
 
 function loadData(){
 
@@ -69,7 +78,7 @@ if(savedCurrentSession) currentSession = JSON.parse(savedCurrentSession);
 }
 
 
-// save data
+// save
 
 function saveData(){
 localStorage.setItem('attendanceSessions',JSON.stringify(sessions));
@@ -105,8 +114,15 @@ year:'numeric'
 });
 }
 
+function formatTime(date){
+return new Date(date).toLocaleTimeString('en-US',{
+hour:'2-digit',
+minute:'2-digit'
+});
+}
 
-// ✅ FIXED UI update (MONTH FILTER APPLIED)
+
+// update UI
 
 function updateUI(){
 
@@ -130,7 +146,7 @@ tapOutBtn.disabled=true;
 }
 
 
-// 🔥 MONTH FILTER (MAIN FIX)
+// MONTH FILTER
 
 const now = new Date();
 
@@ -142,8 +158,6 @@ let monthHours = sessions
     })
     .reduce((t,s)=>t+calculateDuration(s.tapIn,s.tapOut),0);
 
-
-// totals include BOTH inside + outside automatically
 
 const remaining=Math.max(0,MONTHLY_TARGET-monthHours);
 const progress=Math.min(100,(monthHours/MONTHLY_TARGET)*100);
@@ -159,25 +173,7 @@ renderHistory();
 }
 
 
-// VIEW SWITCH
-
-function setView(mode){
-
-viewMode = mode;
-
-document.querySelectorAll('.btn-view')
-.forEach(btn => btn.classList.remove('active-view'));
-
-if(mode==="weekly_inside") weeklyInsideBtn.classList.add('active-view');
-if(mode==="weekly_outside") weeklyOutsideBtn.classList.add('active-view');
-if(mode==="daily_inside") dailyInsideBtn.classList.add('active-view');
-if(mode==="daily_outside") dailyOutsideBtn.classList.add('active-view');
-
-renderHistory();
-}
-
-
-// render history (unchanged)
+// render history
 
 function renderHistory(){
 
@@ -186,77 +182,84 @@ historyListEl.innerHTML='<p style="text-align:center;">No sessions</p>';
 return;
 }
 
-const type = viewMode.includes("outside") ? "outside" : "inside";
-const filtered = sessions.filter(s => (s.type||"inside")===type);
 
+// 🔥 SESSION VIEW (WITH DELETE)
 
-// DAILY
-if(viewMode.includes("daily")){
+if(viewMode==="sessions"){
 
-const daily={};
+const sorted=[...sessions].sort((a,b)=>
+new Date(b.tapIn)-new Date(a.tapIn)
+);
 
-filtered.forEach(s=>{
-const key=new Date(s.tapIn).toDateString();
-const d=calculateDuration(s.tapIn,s.tapOut);
+historyListEl.innerHTML=sorted.map((s,index)=>{
 
-if(!daily[key]) daily[key]=0;
-daily[key]+=d;
-});
+const duration=calculateDuration(s.tapIn,s.tapOut);
 
-const sorted=Object.entries(daily)
-.sort((a,b)=>new Date(b[0])-new Date(a[0]));
-
-historyListEl.innerHTML=sorted.map(([d,total])=>`
-<div class="history-item ${type}">
-<div class="history-date">${d}</div>
-<div class="history-duration">${formatHours(total)}</div>
+return`
+<div class="history-item ${s.type}" data-index="${index}">
+<div>
+<div class="history-date">${formatDate(s.tapIn)}</div>
+<div class="history-time">
+${formatTime(s.tapIn)} - ${formatTime(s.tapOut)}
 </div>
-`).join('');
-
-}
-
-
-// WEEKLY
-else{
-
-const weekly={};
-
-filtered.forEach(s=>{
-const d=new Date(s.tapIn);
-
-const start=new Date(d);
-start.setDate(d.getDate()-d.getDay());
-start.setHours(0,0,0,0);
-
-const key=start.toISOString();
-
-const dur=calculateDuration(s.tapIn,s.tapOut);
-
-if(!weekly[key]) weekly[key]=0;
-weekly[key]+=dur;
-});
-
-const sorted=Object.entries(weekly)
-.sort((a,b)=>new Date(b[0])-new Date(a[0]));
-
-historyListEl.innerHTML=sorted.map(([k,total])=>{
-const start=new Date(k);
-const end=new Date(start);
-end.setDate(start.getDate()+6);
-
-return `
-<div class="history-item ${type}">
-<div class="history-date">
-${formatDate(start)} - ${formatDate(end)}
 </div>
-<div class="history-duration">${formatHours(total)}</div>
+
+<div class="history-duration">${formatHours(duration)}</div>
 </div>
 `;
+
 }).join('');
 
+attachLongPress(sorted);
 }
 
 }
+
+
+// long press
+
+function attachLongPress(sortedList){
+
+const items=document.querySelectorAll('.history-item');
+
+items.forEach((item,i)=>{
+
+let timer;
+
+item.addEventListener('touchstart',()=>{
+timer=setTimeout(()=>{
+deleteIndex = sessions.indexOf(sortedList[i]);
+deleteModal.classList.remove('hidden');
+},600);
+});
+
+item.addEventListener('touchend',()=>clearTimeout(timer));
+
+item.addEventListener('contextmenu',(e)=>{
+e.preventDefault();
+deleteIndex = sessions.indexOf(sortedList[i]);
+deleteModal.classList.remove('hidden');
+});
+
+});
+
+}
+
+
+// delete modal
+
+deleteConfirm.addEventListener('click',()=>{
+if(deleteIndex !== null){
+sessions.splice(deleteIndex,1);
+saveData();
+updateUI();
+}
+deleteModal.classList.add('hidden');
+});
+
+deleteCancel.addEventListener('click',()=>{
+deleteModal.classList.add('hidden');
+});
 
 
 // tap
@@ -286,8 +289,6 @@ manualBtn.addEventListener('click',()=>{
 manualCard.classList.remove('hidden');
 
 manualDate.value=new Date().toISOString().split("T")[0];
-manualStart.value="";
-manualEnd.value="";
 });
 
 manualCancel.addEventListener('click',()=>{
@@ -312,14 +313,9 @@ manualCard.classList.add('hidden');
 });
 
 
-// export (unchanged)
+// export
 
 function exportData(){
-
-if(sessions.length===0){
-alert("No data to export");
-return;
-}
 
 let csv="Date,Start,End,Duration,Type\n";
 
@@ -342,15 +338,10 @@ URL.revokeObjectURL(url);
 // clear
 
 function clearData(){
-
-if(confirm("Are you sure you want to delete all data?")){
-
-sessions = [];
-currentSession = null;
-
-localStorage.removeItem('attendanceSessions');
-localStorage.removeItem('currentSession');
-
+if(confirm("Delete all data?")){
+sessions=[];
+currentSession=null;
+localStorage.clear();
 updateUI();
 }
 }
@@ -360,11 +351,6 @@ updateUI();
 
 tapInBtn.addEventListener('click',tapIn);
 tapOutBtn.addEventListener('click',tapOut);
-
-weeklyInsideBtn.addEventListener('click',()=>setView("weekly_inside"));
-weeklyOutsideBtn.addEventListener('click',()=>setView("weekly_outside"));
-dailyInsideBtn.addEventListener('click',()=>setView("daily_inside"));
-dailyOutsideBtn.addEventListener('click',()=>setView("daily_outside"));
 
 exportBtn.addEventListener('click',exportData);
 clearDataBtn.addEventListener('click',clearData);
