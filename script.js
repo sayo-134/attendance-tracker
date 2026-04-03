@@ -106,7 +106,7 @@ year:'numeric'
 }
 
 
-// UI update
+// ✅ FIXED UI update (MONTH FILTER APPLIED)
 
 function updateUI(){
 
@@ -129,7 +129,21 @@ tapInBtn.disabled=false;
 tapOutBtn.disabled=true;
 }
 
-let monthHours = sessions.reduce((t,s)=>t+calculateDuration(s.tapIn,s.tapOut),0);
+
+// 🔥 MONTH FILTER (MAIN FIX)
+
+const now = new Date();
+
+let monthHours = sessions
+    .filter(s => {
+        const d = new Date(s.tapIn);
+        return d.getMonth() === now.getMonth() &&
+               d.getFullYear() === now.getFullYear();
+    })
+    .reduce((t,s)=>t+calculateDuration(s.tapIn,s.tapOut),0);
+
+
+// totals include BOTH inside + outside automatically
 
 const remaining=Math.max(0,MONTHLY_TARGET-monthHours);
 const progress=Math.min(100,(monthHours/MONTHLY_TARGET)*100);
@@ -163,7 +177,7 @@ renderHistory();
 }
 
 
-// render history
+// render history (unchanged)
 
 function renderHistory(){
 
@@ -298,7 +312,7 @@ manualCard.classList.add('hidden');
 });
 
 
-// export
+// export (unchanged)
 
 function exportData(){
 
@@ -325,7 +339,7 @@ URL.revokeObjectURL(url);
 }
 
 
-// CLEAR DATA (FIXED)
+// clear
 
 function clearData(){
 
