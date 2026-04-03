@@ -6,6 +6,7 @@
     box-sizing: border-box;
 }
 
+
 /* BODY */
 
 body {
@@ -14,6 +15,7 @@ body {
     min-height: 100vh;
     padding: 20px;
 }
+
 
 /* CONTAINER */
 
@@ -25,6 +27,7 @@ body {
     padding: 30px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.25);
 }
+
 
 /* HEADINGS */
 
@@ -38,6 +41,7 @@ h1 {
 h2 {
     color: #333;
 }
+
 
 /* STATUS */
 
@@ -59,6 +63,7 @@ h2 {
     font-size: 1.2em;
 }
 
+
 /* BUTTONS */
 
 .action-buttons {
@@ -68,7 +73,7 @@ h2 {
 }
 
 .btn {
-    flex: unset;
+    flex: 1;
     padding: 18px;
     border: none;
     border-radius: 10px;
@@ -121,6 +126,11 @@ h2 {
     background: #1d4ed8;
 }
 
+.btn:active {
+    transform: translateY(1px);
+}
+
+
 /* STATS */
 
 .stats-grid {
@@ -135,6 +145,12 @@ h2 {
     padding: 20px;
     border-radius: 10px;
     text-align: center;
+    transition: 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
 }
 
 .stat-label {
@@ -146,6 +162,7 @@ h2 {
     font-size: 1.8em;
     font-weight: bold;
 }
+
 
 /* PROGRESS */
 
@@ -162,6 +179,7 @@ h2 {
     background: linear-gradient(90deg,#10b981,#059669);
 }
 
+
 /* HISTORY */
 
 .history-list {
@@ -177,6 +195,12 @@ h2 {
     display: flex;
     justify-content: space-between;
     border-left: 4px solid #10b981;
+    transition: 0.2s;
+}
+
+.history-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
 }
 
 .history-date {
@@ -186,6 +210,7 @@ h2 {
 .history-duration {
     font-weight: bold;
 }
+
 
 /* INSIDE / OUTSIDE COLORS */
 
@@ -201,13 +226,20 @@ h2 {
     color: #3b82f6;
 }
 
-/* VIEW BUTTONS */
+
+/* VIEW BUTTONS (FINAL FIXED) */
 
 .view-buttons {
     display: grid;
-    grid-template-columns: repeat(2,1fr);
+    grid-template-columns: repeat(2, minmax(0,1fr));
     gap: 12px;
     margin-bottom: 20px;
+}
+
+/* ?? CRITICAL FIX */
+.view-buttons .btn {
+    flex: unset;
+    width: 100%;
 }
 
 .btn-view {
@@ -225,6 +257,7 @@ h2 {
     color: white !important;
 }
 
+
 /* EXPORT */
 
 .export-row {
@@ -235,7 +268,13 @@ h2 {
 .btn-export {
     background: #374151;
     color: white;
+    width: 220px;
 }
+
+.btn-export:hover {
+    background: #1f2937;
+}
+
 
 /* MANUAL POPUP */
 
@@ -269,6 +308,7 @@ h2 {
     border: 1px solid #ccc;
 }
 
+
 /* DANGER */
 
 .danger-zone {
@@ -276,20 +316,17 @@ h2 {
     text-align: center;
 }
 
-/* HOVER POLISH */
 
-.stat-card:hover,
-.history-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-}
-
-/* MOBILE FIX FOR VIEW BUTTONS */
+/* MOBILE FIX (FINAL) */
 
 @media (max-width: 600px){
 
+    .container{
+        padding: 20px;
+    }
+
     .view-buttons{
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0,1fr));
     }
 
     .btn-view{
@@ -297,7 +334,8 @@ h2 {
         font-size: 0.85em;
         padding: 10px;
         text-align: center;
-        white-space: normal; /* allow wrapping */
+        white-space: normal;
+        word-break: break-word;
     }
 
 }
