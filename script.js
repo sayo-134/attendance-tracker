@@ -135,20 +135,15 @@ function updateUI(){
 
     const now = new Date();
 
-    // ================= TODAY HOURS (FIX) =================
+    // ================= TODAY =================
     let todayHours = sessions
-        .filter(s => {
-            const d = new Date(s.tapIn);
-            return d.toDateString() === now.toDateString();
-        })
+        .filter(s => new Date(s.tapIn).toDateString() === now.toDateString())
         .reduce((t,s)=>t+calculateDuration(s.tapIn,s.tapOut),0);
-
+    
     // include ongoing session
-    if(currentSession){
-        const d = new Date(currentSession.tapIn);
-        if(d.toDateString() === now.toDateString()){
-            todayHours += calculateDuration(currentSession.tapIn, new Date());
-        }
+    if(currentSession &&
+       new Date(currentSession.tapIn).toDateString() === now.toDateString()){
+        todayHours += calculateDuration(currentSession.tapIn, now);
     }
 
 
@@ -160,6 +155,15 @@ function updateUI(){
                    d.getFullYear() === now.getFullYear();
         })
         .reduce((t,s)=>t+calculateDuration(s.tapIn,s.tapOut),0);
+    
+    // include ongoing session
+    if(currentSession){
+        const d = new Date(currentSession.tapIn);
+        if(d.getMonth() === now.getMonth() &&
+           d.getFullYear() === now.getFullYear()){
+            monthHours += calculateDuration(currentSession.tapIn, now);
+        }
+    }
 
 
     const remaining=Math.max(0,MONTHLY_TARGET-monthHours);
@@ -210,67 +214,93 @@ function renderHistory(){
 
 
     // DAILY
-    if(viewMode.includes("daily")){
+    if(viewMode.includes("daily"))
+    {
 
-        const daily={};
-
-        filtered.forEach(s=>{
-            const key=new Date(s.tapIn).toDateString();
-            const d=calculateDuration(s.tapIn,s.tapOut);
-
-            if(!daily[key]) daily[key]=0;
-            daily[key]+=d;
-        });
-
-        const sorted=Object.entries(daily)
-        .sort((a,b)=>new Date(b[0])-new Date(a[0]));
-
-        historyListEl.innerHTML=sorted.map(([d,total])=>`
-        <div class="history-item ${type}">
-            <div class="history-date">${d}</div>
-            <div class="history-duration">${formatHours(total)}</div>
-        </div>
-        `).join('');
-    }
+      const daily={};
+  
+      filtered.forEach(s=>{
+          const key=new Date(s.tapIn).toDateString();
+          const d=calculateDuration(s.tapIn,s.tapOut);
+  
+          if(!daily[key]) daily[key]=0;
+          daily[key]+=d;
+      });
+  
+      // ✅ FIX: include current session BEFORE rendering
+      if(currentSession && (currentSession.type||"inside")===type){
+          const key = new Date(currentSession.tapIn).toDateString();
+          const d = calculateDuration(currentSession.tapIn, new Date());
+  
+          if(!daily[key]) daily[key]=0;
+          daily[key]+=d;
+      }
+  
+      const sorted=Object.entries(daily)
+      .sort((a,b)=>new Date(b[0])-new Date(a[0]));
+  
+      historyListEl.innerHTML=sorted.map(([d,total])=>`
+      <div class="history-item ${type}">
+          <div class="history-date">${d}</div>
+          <div class="history-duration">${formatHours(total)}</div>
+      </div>
+      `).join('');
+  }
 
     // WEEKLY
-    else{
-
-        const weekly={};
-
-        filtered.forEach(s=>{
-            const d=new Date(s.tapIn);
-
-            const start=new Date(d);
-            start.setDate(d.getDate()-d.getDay());
-            start.setHours(0,0,0,0);
-
-            const key=start.toISOString();
-
-            const dur=calculateDuration(s.tapIn,s.tapOut);
-
-            if(!weekly[key]) weekly[key]=0;
-            weekly[key]+=dur;
-        });
-
-        const sorted=Object.entries(weekly)
-        .sort((a,b)=>new Date(b[0])-new Date(a[0]));
-
-        historyListEl.innerHTML=sorted.map(([k,total])=>{
-            const start=new Date(k);
-            const end=new Date(start);
-            end.setDate(start.getDate()+6);
-
-            return `
-            <div class="history-item ${type}">
-                <div class="history-date">
-                ${formatDate(start)} - ${formatDate(end)}
-                </div>
-                <div class="history-duration">${formatHours(total)}</div>
-            </div>
-            `;
-        }).join('');
-    }
+  else{
+  
+      const weekly={};
+  
+      filtered.forEach(s=>{
+          const d=new Date(s.tapIn);
+  
+          const start=new Date(d);
+          start.setDate(d.getDate()-d.getDay());
+          start.setHours(0,0,0,0);
+  
+          const key=start.toISOString();
+  
+          const dur=calculateDuration(s.tapIn,s.tapOut);
+  
+          if(!weekly[key]) weekly[key]=0;
+          weekly[key]+=dur;
+      });
+  
+      // ✅ ADD THIS (same idea as daily)
+      if(currentSession && (currentSession.type||"inside")===type){
+          const d = new Date(currentSession.tapIn);
+  
+          const start=new Date(d);
+          start.setDate(d.getDate()-d.getDay());
+          start.setHours(0,0,0,0);
+  
+          const key=start.toISOString();
+  
+          const dur = calculateDuration(currentSession.tapIn, new Date());
+  
+          if(!weekly[key]) weekly[key]=0;
+          weekly[key]+=dur;
+      }
+  
+      const sorted=Object.entries(weekly)
+      .sort((a,b)=>new Date(b[0])-new Date(a[0]));
+  
+      historyListEl.innerHTML=sorted.map(([k,total])=>{
+          const start=new Date(k);
+          const end=new Date(start);
+          end.setDate(start.getDate()+6);
+  
+          return `
+          <div class="history-item ${type}">
+              <div class="history-date">
+              ${formatDate(start)} - ${formatDate(end)}
+              </div>
+              <div class="history-duration">${formatHours(total)}</div>
+          </div>
+          `;
+      }).join('');
+  }
 }
 
 
@@ -394,6 +424,14 @@ dailyInsideBtn.addEventListener('click',()=>setView("daily_inside"));
 
 if(dailyOutsideBtn)
 dailyOutsideBtn.addEventListener('click',()=>setView("daily_outside"));
+
+
+// ================= AUTO REFRESH (ONLY ADDITION) =================
+setInterval(()=>{
+    if(currentSession){
+        updateUI();
+    }
+}, 60000);
 
 
 // ================= INIT =================
