@@ -133,10 +133,26 @@ function updateUI(){
     }
 
 
-    // ✅ MONTH FILTER (FIXED)
-
     const now = new Date();
 
+    // ================= TODAY HOURS (FIX) =================
+    let todayHours = sessions
+        .filter(s => {
+            const d = new Date(s.tapIn);
+            return d.toDateString() === now.toDateString();
+        })
+        .reduce((t,s)=>t+calculateDuration(s.tapIn,s.tapOut),0);
+
+    // include ongoing session
+    if(currentSession){
+        const d = new Date(currentSession.tapIn);
+        if(d.toDateString() === now.toDateString()){
+            todayHours += calculateDuration(currentSession.tapIn, new Date());
+        }
+    }
+
+
+    // ================= MONTH HOURS =================
     let monthHours = sessions
         .filter(s => {
             const d = new Date(s.tapIn);
@@ -149,9 +165,11 @@ function updateUI(){
     const remaining=Math.max(0,MONTHLY_TARGET-monthHours);
     const progress=Math.min(100,(monthHours/MONTHLY_TARGET)*100);
 
-    todayHoursEl.textContent="--";
-    monthHoursEl.textContent=formatHours(monthHours);
-    remainingHoursEl.textContent=formatHours(remaining);
+
+    // ================= UPDATE UI =================
+    todayHoursEl.textContent = formatHours(todayHours);
+    monthHoursEl.textContent = formatHours(monthHours);
+    remainingHoursEl.textContent = formatHours(remaining);
 
     progressPercentEl.textContent=`${progress.toFixed(0)}%`;
     progressFillEl.style.width=`${progress}%`;
