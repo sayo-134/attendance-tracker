@@ -203,7 +203,7 @@ function setView(mode){
 
 function deleteByDate(dateStr, type){
 
-    if(!confirm("Delete all entries for this period?")) return;
+//    if(!confirm("Delete all entries for this period?")) return;
 
     sessions = sessions.filter(s=>{
         const d = new Date(s.tapIn);
@@ -396,10 +396,13 @@ function renderHistory(){
       });
   
       // delete button click
-      delBtn.onclick = ()=>{
+      delBtn.onclick = (e)=>{
+          e.stopPropagation();   // ✅ prevent bubbling
+          e.preventDefault();    // ✅ prevent contextmenu trigger
+      
           const date = item.getAttribute('data-date');
           const mode = item.getAttribute('data-mode');
-  
+      
           if(confirm("Delete this entry?")){
               deleteByDate(date, mode);
           }
@@ -420,10 +423,11 @@ function renderHistory(){
   
       item.addEventListener('contextmenu', (e)=>{
           e.preventDefault();
-  
+          e.stopPropagation();   // ✅ add this
+      
           const date = item.getAttribute('data-date');
           const mode = item.getAttribute('data-mode');
-  
+      
           if(confirm("Delete this entry?")){
               deleteByDate(date, mode);
           }
