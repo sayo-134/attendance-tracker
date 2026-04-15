@@ -199,6 +199,31 @@ function setView(mode){
     renderHistory();
 }
 
+// ================= DELETE =================
+
+function deleteByDate(dateStr, type){
+
+    if(!confirm("Delete all entries for this period?")) return;
+
+    sessions = sessions.filter(s=>{
+        const d = new Date(s.tapIn);
+
+        if(type === "daily"){
+            return d.toDateString() !== dateStr;
+        }
+
+        // weekly
+        const start=new Date(dateStr);
+        const end=new Date(start);
+        end.setDate(start.getDate()+6);
+
+        return !(d >= start && d <= end);
+    });
+
+    saveData();
+    updateUI();
+}
+
 
 // ================= HISTORY =================
 
@@ -240,7 +265,7 @@ function renderHistory(){
       .sort((a,b)=>new Date(b[0])-new Date(a[0]));
   
       historyListEl.innerHTML=sorted.map(([d,total])=>`
-      <div class="history-item ${type}">
+      <div class="history-item ${type}" data-date="${d}" data-mode="daily">
           <div class="history-date">${d}</div>
           <div class="history-duration">${formatHours(total)}</div>
       </div>
@@ -292,7 +317,7 @@ function renderHistory(){
           end.setDate(start.getDate()+6);
   
           return `
-          <div class="history-item ${type}">
+          <div class="history-item ${type}" data-date="${k}" data-mode="weekly">
               <div class="history-date">
               ${formatDate(start)} - ${formatDate(end)}
               </div>
@@ -301,6 +326,110 @@ function renderHistory(){
           `;
       }).join('');
   }
+  
+  // ================= SLIDE TO DELETE (MOBILE) =================
+  document.querySelectorAll('.history-item').forEach(item=>{
+  
+      let startX = 0;
+      let currentX = 0;
+      let isSwiping = false;
+      let isOpen = false;
+  
+      item.style.position = "relative";
+      item.style.overflow = "hidden";
+  
+      // create delete button
+      const delBtn = document.createElement('button');
+      delBtn.textContent = "Delete";
+      delBtn.style.position = "absolute";
+      delBtn.style.right = "0";
+      delBtn.style.top = "0";
+      delBtn.style.height = "100%";
+      delBtn.style.width = "80px";
+      delBtn.style.background = "#ff4d4d";
+      delBtn.style.color = "white";
+      delBtn.style.border = "none";
+  
+      item.appendChild(delBtn);
+  
+      // wrap original content
+      const content = document.createElement('div');
+      content.style.transition = "transform 0.2s ease";
+      content.style.background = "inherit";
+  
+      while(item.firstChild !== delBtn){
+          content.appendChild(item.firstChild);
+      }
+  
+      item.insertBefore(content, delBtn);
+  
+      item.addEventListener('touchstart', (e)=>{
+          startX = e.touches[0].clientX;
+          currentX = startX;   // ✅ FIX
+          isSwiping = true;
+      });
+  
+      item.addEventListener('touchmove', (e)=>{
+          if(!isSwiping) return;
+  
+          currentX = e.touches[0].clientX;
+          let diff = currentX - startX;
+  
+          if(diff < 0){ // left swipe
+              let translate = Math.max(diff, -80);
+              content.style.transform = `translateX(${translate}px)`;
+          }
+      });
+  
+      item.addEventListener('touchend', ()=>{
+          isSwiping = false;
+  
+          let diff = currentX - startX;
+  
+          if(diff < -50){
+              content.style.transform = "translateX(-80px)";
+              isOpen = true;
+          } else {
+              content.style.transform = "translateX(0)";
+              isOpen = false;
+          }
+      });
+  
+      // delete button click
+      delBtn.onclick = ()=>{
+          const date = item.getAttribute('data-date');
+          const mode = item.getAttribute('data-mode');
+  
+          if(confirm("Delete this entry?")){
+              deleteByDate(date, mode);
+          }
+      };
+  
+      // tap outside to close
+      content.onclick = ()=>{
+          if(isOpen){
+              content.style.transform = "translateX(0)";
+              isOpen = false;
+          }
+      };
+  });
+  
+  
+  // ================= RIGHT CLICK DELETE (DESKTOP) =================
+  document.querySelectorAll('.history-item').forEach(item=>{
+  
+      item.addEventListener('contextmenu', (e)=>{
+          e.preventDefault();
+  
+          const date = item.getAttribute('data-date');
+          const mode = item.getAttribute('data-mode');
+  
+          if(confirm("Delete this entry?")){
+              deleteByDate(date, mode);
+          }
+      });
+  
+  });
 }
 
 

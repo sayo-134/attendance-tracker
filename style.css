@@ -226,6 +226,24 @@ h2 {
     color: #3b82f6;
 }
 
+.history-item {
+    transition: transform 0.2s ease;
+    touch-action: pan-y;
+}
+
+.confirm-del {
+    background: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    margin-right: 5px;
+}
+
+.cancel-del {
+    background: #ccc;
+    border: none;
+    padding: 4px 8px;
+}
 
 /* VIEW BUTTONS (FINAL FIXED) */
 
